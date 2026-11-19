@@ -93,3 +93,21 @@ src/
 npm install
 npm run dev
 ```
+
+## 🌐 GitHub Pages 배포
+
+- 사이트 주소: https://0whiteofficial0.github.io/pokemon-type-checker/
+- 저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정합니다.
+- `main` 브랜치에 코드를 푸시하면 `.github/workflows/deploy.yml`에서 빌드와 배포를 자동으로 실행합니다.
+- 최초 설정 후에는 **Actions → Deploy to GitHub Pages → Run workflow**로 수동 배포할 수도 있습니다.
+- **Actions**에서 배포 작업의 성공 여부를 확인할 수 있습니다.
+
+GitHub Pages의 저장소 경로에 맞춰 Vite의 `base`를 설정했습니다. 라우터는 해시 방식을 사용하므로 상성표 주소(`/pokemon-type-checker/#/chart`)를 직접 열거나 새로고침해도 정상적으로 표시됩니다.
+
+로컬에서 배포 결과를 확인하려면 Node.js 24에서 다음 명령을 실행합니다.
+
+```bash
+npm ci
+npm run build
+npm run preview
+```
