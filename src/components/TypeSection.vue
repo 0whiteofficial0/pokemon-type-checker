@@ -3,9 +3,8 @@
 // TypeSection 컴포넌트
 // ============================================
 // 포켓몬의 타입 상성 정보를 보여주는 컴포넌트
-// - 약점: 2배 피해를 받는 타입 (double_damage_from)
-// - 유리: 2배 피해를 주는 타입 (double_damage_to)
-// - 2타입 포켓몬은 중복 제거 후 표시
+// - 약점: 2배 또는 4배 피해를 받는 공격 타입
+// - 유리: 포켓몬의 타입 기술이 2배 피해를 주는 방어 타입
 
 // 데이터
 import { typeColors, typeKorean, typeIcons } from '@/data/typeData.js'
@@ -22,11 +21,11 @@ defineProps(['typeData'])
     <div class="type-section">
       <p>약점</p>
       <div class="badge-list">
-        <span v-for="t in typeData.damage_relations.double_damage_from"
+        <span v-for="t in typeData.weaknesses"
           :key="t.name" class="type-badge"
           :style="{ backgroundColor: typeColors[t.name] }">
           <img :src="typeIcons[t.name]" class="type-icon" />
-          {{ typeKorean[t.name] }}
+          {{ typeKorean[t.name] }} {{ t.multiplier }}배
         </span>
       </div>
     </div>
@@ -35,11 +34,11 @@ defineProps(['typeData'])
     <div class="type-section">
       <p>유리</p>
       <div class="badge-list">
-        <span v-for="t in typeData.damage_relations.double_damage_to"
-          :key="t.name" class="type-badge"
-          :style="{ backgroundColor: typeColors[t.name] }">
-          <img :src="typeIcons[t.name]" class="type-icon" />
-          {{ typeKorean[t.name] }}
+        <span v-for="type in typeData.strongAgainst"
+          :key="type" class="type-badge"
+          :style="{ backgroundColor: typeColors[type] }">
+          <img :src="typeIcons[type]" class="type-icon" />
+          {{ typeKorean[type] }}
         </span>
       </div>
     </div>

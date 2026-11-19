@@ -5,7 +5,7 @@
 // 상대 포켓몬의 타입 상성과 내 로스터를 비교해서
 // 유리한 포켓몬과 불리한 포켓몬을 찾아 보여주는 컴포넌트
 // - 유리: 내 타입이 상대 약점을 찌를 수 있는 포켓몬
-// - 불리: 내 타입이 상대한테 효과가 별로인 포켓몬
+// - 불리: 상대 타입이 내 약점을 찌를 수 있는 포켓몬
 
 // Vue 핵심
 import { computed } from 'vue'
@@ -15,6 +15,7 @@ import { useRosterStore } from '@/stores/roster'
 
 // 데이터
 import { typeColors, typeKorean, typeIcons } from '@/data/typeData.js'
+import { getDamageMultiplier } from '@/data/typeChart.js'
 
 // Props: 부모에서 받는 타입 상성 데이터
 const props = defineProps(['typeData'])
@@ -25,7 +26,7 @@ const matchedPokemon = computed(() => {
   if (!props.typeData || rosterStore.myRoster.length === 0) return []
 
   // 상대 포켓몬의 약점 타입 목록
-  const weakTypes = props.typeData.damage_relations.double_damage_from.map(t => t.name)
+  const weakTypes = props.typeData.weaknesses.map(t => t.name)
 
   return rosterStore.myRoster.filter(pokemon =>
     pokemon.types.some(t => weakTypes.includes(t.type.name))
@@ -36,12 +37,12 @@ const matchedPokemon = computed(() => {
 const disadvantagedPokemon = computed(() => {
   if (!props.typeData || rosterStore.myRoster.length === 0) return []
 
-  // 상대 포켓몬이 2배 피해를 주는 타입 목록 (내가 불리한 타입)
-  const strongTypes = props.typeData.damage_relations.double_damage_to.map(t => t.name)
-
-  return rosterStore.myRoster.filter(pokemon =>
-    pokemon.types.some(t => strongTypes.includes(t.type.name))
-  )
+  return rosterStore.myRoster.filter(pokemon => {
+    const defendingTypes = pokemon.types.map(({ type }) => type.name)
+    return props.typeData.pokemonTypes.some(attackType =>
+      getDamageMultiplier(attackType, defendingTypes) > 1,
+    )
+  })
 })
 </script>
 

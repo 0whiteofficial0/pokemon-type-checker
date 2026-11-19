@@ -13,14 +13,14 @@
 // ============================================
 
 // Vue 핵심
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 // 스토어
 import { useSearchStore } from '@/stores/search'
-import { useRosterStore } from '@/stores/roster'
 
 // 데이터
 import { pokemonNames } from '@/data/pokemonNames.js'
+import { getTypeMatchups } from '@/data/typeChart.js'
 
 // 컴포넌트
 import SearchBar from '@/components/SearchBar.vue'
@@ -37,11 +37,12 @@ import '@/assets/home.css'
 // ============================================
 
 const searchStore = useSearchStore()
-const rosterStore = useRosterStore()
 
 const searchQuery = ref('')     // 검색어
 const pokemonData = ref(null)   // 검색된 포켓몬 데이터
-const typeData = ref(null)      // 타입 상성 데이터
+const typeData = computed(() =>
+  pokemonData.value ? getTypeMatchups(pokemonData.value.types.map(({ type }) => type.name)) : null,
+)
 const errorMessage = ref('')    // 에러 메시지
 
 // ============================================
@@ -52,7 +53,6 @@ const errorMessage = ref('')    // 에러 메시지
 watch(() => searchStore.shouldReset, (val) => {
   if (val) {
     pokemonData.value = null
-    typeData.value = null
     searchQuery.value = ''
     errorMessage.value = ''
     searchStore.shouldReset = false
@@ -89,36 +89,7 @@ async function search() {
     const suffix = data.name.includes('-mega-x') ? 'X' : data.name.includes('-mega-y') ? 'Y' : ''
     const finalName = isMega ? `메가${koreanName?.name}${suffix}` : koreanName?.name
 
-    // 5. 타입 상성 데이터 가져오기 (2타입이면 합치고 중복 제거)
-    if (data.types.length === 2) {
-      const typeResponse1 = await fetch(`https://pokeapi.co/api/v2/type/${data.types[0].type.name}`)
-      const typeInfo1 = await typeResponse1.json()
-      const typeResponse2 = await fetch(`https://pokeapi.co/api/v2/type/${data.types[1].type.name}`)
-      const typeInfo2 = await typeResponse2.json()
-
-      typeData.value = {
-        damage_relations: {
-          double_damage_from: [
-            ...new Set([
-              ...typeInfo1.damage_relations.double_damage_from.map(t => t.name),
-              ...typeInfo2.damage_relations.double_damage_from.map(t => t.name)
-            ])
-          ].map(name => ({ name })),
-          double_damage_to: [
-            ...new Set([
-              ...typeInfo1.damage_relations.double_damage_to.map(t => t.name),
-              ...typeInfo2.damage_relations.double_damage_to.map(t => t.name)
-            ])
-          ].map(name => ({ name }))
-        }
-      }
-    } else {
-      const typeResponse = await fetch(`https://pokeapi.co/api/v2/type/${data.types[0].type.name}`)
-      const typeInfo = await typeResponse.json()
-      typeData.value = typeInfo
-    }
-
-    // 6. 최종 데이터 저장 및 검색 기록 추가
+    // 5. 최종 데이터 저장 및 검색 기록 추가
     pokemonData.value = { ...data, koreanName: finalName }
     searchStore.addSearch(searchQuery.value)
 
@@ -126,7 +97,6 @@ async function search() {
     // 검색 실패 시 에러 메시지 표시 및 데이터 초기화
     errorMessage.value = '포켓몬을 찾을 수 없어요 😢'
     pokemonData.value = null
-    typeData.value = null
   }
 }
 </script>

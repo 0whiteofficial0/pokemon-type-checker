@@ -24,3 +24,23 @@ export const typeChart = {
   steel:    [1, 0.5, 0.5, 0.5, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 0.5, 2],
   fairy:    [1, 0.5, 1, 1, 1, 1, 2, 0.5, 1, 1, 1, 1, 1, 1, 2, 2, 0.5, 1],
 }
+
+export function getDamageMultiplier(attackType, defendingTypes) {
+  const damageByType = typeChart[attackType]
+  return defendingTypes.reduce((multiplier, type) => {
+    return multiplier * (damageByType?.[types.indexOf(type)] ?? 1)
+  }, 1)
+}
+
+export function getTypeMatchups(pokemonTypes) {
+  const weaknesses = types
+    .map(name => ({ name, multiplier: getDamageMultiplier(name, pokemonTypes) }))
+    .filter(({ multiplier }) => multiplier > 1)
+    .sort((a, b) => b.multiplier - a.multiplier)
+
+  const strongAgainst = types.filter(defendingType =>
+    pokemonTypes.some(attackType => getDamageMultiplier(attackType, [defendingType]) > 1),
+  )
+
+  return { pokemonTypes, weaknesses, strongAgainst }
+}
